@@ -91,9 +91,19 @@ function createOutboundConnection(addr, port, wsClient) {
   });
 }
 
-// HTTP 服务器 (加响应日志)
+// HTTP 服务器 (加 CORS 头)
 const server = http.createServer((req, res) => {
   console.log(`HTTP: ${req.method} ${req.url} - Sending response`);
+  // CORS 预检
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Upgrade, Connection, Sec-WebSocket-Key, Sec-WebSocket-Version');
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    console.log('CORS OPTIONS OK');
+    return;
+  }
   if (req.url === VLESS_PATH) {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Not Found');
@@ -105,7 +115,7 @@ const server = http.createServer((req, res) => {
   console.log(`Sent OK page for ${req.url}`);
 });
 
-// WS 升级
+// WS 升级 (加 WS 头)
 server.on('upgrade', (request, socket, head) => {
   console.log(`WS upgrade: ${request.url}`);
   if (request.url !== VLESS_PATH) {
@@ -113,6 +123,8 @@ server.on('upgrade', (request, socket, head) => {
     socket.destroy();
     return;
   }
+  // WS 头
+  socket.write('HTTP/1.1 101 Switching Protocols\r\n' + 'Upgrade: websocket\r\n' + 'Connection: Upgrade\r\n' + '\r\n');
   let buffer = Buffer.alloc(0);
   socket.on('data', data => {
     buffer = Buffer.concat([buffer, data]);
