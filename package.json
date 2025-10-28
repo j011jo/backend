@@ -1,5 +1,19 @@
 {
+  "name": "vless-nodejs-proxy",
+  "version": "1.0.0",
+  "description": "Node.js VLESS WS Proxy for Back4app",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.16.0",
+    "crypto": "^1.0.1",
+    "net": "^1.0.2",
+    "tls": "^0.0.3",
+    "http-proxy": "^1.18.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
