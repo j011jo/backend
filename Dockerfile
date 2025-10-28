@@ -7,6 +7,5 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 3000  # Back4app 会代理到此端口，支持 WS
-
+EXPOSE 3000
 CMD ["npm", "start"]
