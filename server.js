@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const net = require('net');
 
 // 配置
-const UUID = process.env.UUID || 'de04add9-5c68-8bab-950c-08cd5320df18'; // 带 - 的标准 UUID
+const UUID = process.env.UUID || 'de04add9-5c68-8bab-950c-08cd5320df18';
 const PORT = process.env.PORT || 3000;
 const VLESS_PATH = process.env.VLESS_PATH || '/vl';
 
@@ -19,7 +19,7 @@ const ATYP_DOMAIN = 3;
 // 伪装页
 const FAKE_PAGE = '<!DOCTYPE html><html><body><h1>OK - Proxy Active</h1></body></html>';
 
-// UUID 验证 (标准 16 bytes raw)
+// UUID 验证
 function validateUUID(uuidRaw) {
   try {
     const clientUUID = uuidRaw.toString('hex');
@@ -91,16 +91,18 @@ function createOutboundConnection(addr, port, wsClient) {
   });
 }
 
-// HTTP 服务器
+// HTTP 服务器 (加响应日志)
 const server = http.createServer((req, res) => {
-  console.log(`HTTP: ${req.method} ${req.url}`);
+  console.log(`HTTP: ${req.method} ${req.url} - Sending response`);
   if (req.url === VLESS_PATH) {
-    res.writeHead(404);
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Not Found');
+    console.log(`Sent 404 for ${VLESS_PATH}`);
     return;
   }
   res.writeHead(200, { 'Content-Type': 'text/html' });
   res.end(FAKE_PAGE);
+  console.log(`Sent OK page for ${req.url}`);
 });
 
 // WS 升级
@@ -116,7 +118,7 @@ server.on('upgrade', (request, socket, head) => {
     buffer = Buffer.concat([buffer, data]);
     console.log(`Received data, total buffer: ${buffer.length} bytes`);
     const header = parseVLESSHeader(buffer);
-    if (!header) return; // 等数据
+    if (!header) return;
     try {
       const response = Buffer.alloc(2);
       response[0] = VLESS_VERSION;
